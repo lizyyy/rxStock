@@ -104,6 +104,10 @@
 		154E7FA120064BEC00625AE5 /* stock */ = {
 			isa = PBXGroup;
 			children = (
+				15FC39BA20079DF500689366 /* Config */,
+				15FC39BB20079DF500689366 /* Resource */,
+				15FC39B920079DF500689366 /* Tools */,
+				15FC39B820079DF500689366 /* Vender */,
 				15FC39B720079AC400689366 /* View */,
 				15FC39B620079AC400689366 /* ViewController */,
 				15FC39B520079AC400689366 /* ViewModel */,
@@ -162,6 +166,34 @@
 			children = (
 			);
 			path = View;
+			sourceTree = "<group>";
+		};
+		15FC39B820079DF500689366 /* Vender */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Vender;
+			sourceTree = "<group>";
+		};
+		15FC39B920079DF500689366 /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Tools;
+			sourceTree = "<group>";
+		};
+		15FC39BA20079DF500689366 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		15FC39BB20079DF500689366 /* Resource */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resource;
 			sourceTree = "<group>";
 		};
 		2E2DBEE33A7D2A79603D4DC5 /* Frameworks */ = {
