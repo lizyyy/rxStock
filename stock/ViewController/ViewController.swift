@@ -17,37 +17,43 @@ import MJRefresh
 class ViewController: UIViewController {
     var searchResult : UITableView!
     var bag:DisposeBag! = DisposeBag()
-    typealias SectionTableMode = SectionModel<String,ListModel>
     let result = [ListModel]();
     override func viewDidLoad() {
         super.viewDidLoad()
         searchResult  = UITableView(frame: CGRect(x:0, y:49, width:ScreenW, height:ScreenH),style:.plain)
-        searchResult.register(ListTableViewCell.self, forCellReuseIdentifier: ListTableViewCell.ReuseIdentifier)
+        searchResult.register(ListTableViewCell.self, forCellReuseIdentifier: "ListTableViewCell")
         self.view.addSubview(searchResult)
-        let todoId: Int? = nil
-        Observable.of(todoId)
+        Observable.of(0)
             .flatMap { route in
                 return self.searchForGithub(repositoryName: "")
             }
             .subscribe(
                 onNext:{ rs in
-                    let a = Observable<[ListModel]>.just(rs)
-                    a.bind(to: self.searchResult.rx.items(cellIdentifier: ListTableViewCell.ReuseIdentifier, cellType: ListTableViewCell.self)) { (_, model:ListModel, cell:ListTableViewCell) in
-                            cell.nameLabel?.text = model.name
-                        }.disposed(by: self.bag)
+                    Observable<[ListModel]>
+                        .just(rs)
+                        .bind(to: self.searchResult.rx.items(cellIdentifier: "ListTableViewCell", cellType: ListTableViewCell.self)) {
+                            (_, model:ListModel, cell:ListTableViewCell) in
+                                cell.nameLabel?.text = model.name
+                            }
+                        .disposed(by: self.bag)
                 }
             )
             .disposed(by: bag)
     }
 }
 
-typealias rsInfo = Dictionary<String,AnyObject>
 extension ViewController{
     private func searchForGithub(repositoryName: String) -> Observable<[ListModel]> {
         return Observable.create {
             (observer: AnyObserver<[ListModel]>) -> Disposable in
-            let provider = MoyaProvider<StockApi>()
-            _ = provider.rx.request(.GetStocks(code:"00365,01727,02318,00700,03968,02319,NQ,KODK,VIPS,SH603868,SH601933,SH603711,RYB,XNET,SZ000001,SZ000725,JT,JNJ,ATVI,TTWO,SZ002310,SOGO,SZ000538,SZ000799,SZ002230,SZ002271,OC833209,AMD,SZ002236,SZ002508,SZ000423,MOMO,SH600887,BIDU,TCEHY,SZ000333,SH600036,NTES,TWTR,SZ000651,FB,WMT,AMZN,SZ002415,SZ000895,SINA,SH601318,TSLA,AAPL,DIS"))
+                netToolProvider.rx.request(
+                .GetStocks(code:"""
+                    00365,01727,02318,00700,03968,02319,NQ,KODK,VIPS,SH603868,SH601933,
+                    SH603711,RYB,XNET,SZ000001,SZ000725,JT,JNJ,ATVI,TTWO,SZ002310,SOGO,
+                    SZ000538,SZ000799,SZ002230,SZ002271,OC833209,AMD,SZ002236,SZ002508,
+                    SZ000423,MOMO,SH600887,BIDU,TCEHY,SZ000333,SH600036,NTES,TWTR,SZ000651,
+                    FB,WMT,AMZN,SZ002415,SZ000895,SINA,SH601318,TSLA,AAPL,DIS
+                    """))
                 .mapJSON()
                 .subscribe(
                     onSuccess:{json in
@@ -58,7 +64,7 @@ extension ViewController{
                     onError:{error in
                         observer.on(.error(error))
                         print(error)
-                })
+                }).disposed(by: self.bag)
             return  Disposables.create()
         }
     }

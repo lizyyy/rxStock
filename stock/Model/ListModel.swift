@@ -9,10 +9,6 @@
 import Foundation
 
 struct ListModel { 
-    var name   = ""
-    var current        = ""
- 
+    var name    = ""
+    var current = ""
 }
-
-
-

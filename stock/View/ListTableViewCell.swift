@@ -9,7 +9,6 @@
 import UIKit
  
 class ListTableViewCell: UITableViewCell {
-    static let ReuseIdentifier = "Cell"
     var nameLabel: UILabel!
     var currentLabel: UILabel!
     
