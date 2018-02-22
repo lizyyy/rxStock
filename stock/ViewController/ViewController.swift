@@ -13,72 +13,83 @@ import RxCocoa
 import RxDataSources
 import Then
 import MJRefresh
+import NSObject_Rx
 
 class ViewController: UIViewController {
-    var searchResult : UITableView!
-    var bag:DisposeBag! = DisposeBag()
-    let result = [ListModel]();
+    var resultTableView : UITableView!
+    var addBtn = UIButton(frame: CGRect(x: ScreenW-100 , y: 10, width: 80, height: 80))
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchResult  = UITableView(frame: CGRect(x:0, y:49, width:ScreenW, height:ScreenH),style:.plain)
-        searchResult.register(ListTableViewCell.self, forCellReuseIdentifier: "ListTableViewCell")
-        self.view.addSubview(searchResult)
-        Observable.of(0)
-            .flatMap { route in
-                return self.searchForGithub(repositoryName: "")
+        view.backgroundColor = UIColor.black
+        resultTableView  = UITableView(frame: CGRect(x:0, y:LL_StatusBarAndNavigationBarHeight, width:ScreenW, height:ScreenH-LL_StatusBarAndNavigationBarHeight),style:.plain)
+        resultTableView.register(ListTableViewCell.self, forCellReuseIdentifier: "ListTableViewCell")
+        resultTableView.backgroundColor = UIColor.black
+        resultTableView.rowHeight = 60
+        resultTableView.separatorStyle = .none
+        view.addSubview(resultTableView)
+        //添加按钮
+        addBtn.setTitle("+", for: .normal)
+        view.addSubview(addBtn)
+        
+        addBtn.rx.tap.asObservable().subscribe(
+            onNext: {
+                self.present(AddViewController(), animated: true, completion: nil)
             }
-            .subscribe(
-                onNext:{ rs in
-                    Observable<[ListModel]>
-                        .just(rs)
-                        .bind(to: self.searchResult.rx.items(cellIdentifier: "ListTableViewCell", cellType: ListTableViewCell.self)) {
-                            (_, model:ListModel, cell:ListTableViewCell) in
-                                cell.nameLabel?.text = model.name
-                            }
-                        .disposed(by: self.bag)
-                }
-            )
-            .disposed(by: bag)
-    }
-}
+        ).disposed(by: rx.disposeBag)
+        
+        Observable<Int>.interval(2, scheduler: MainScheduler.instance).subscribe { (event) in
+            self.resultTableView.reloadData() //两秒刷新一次
+        }.disposed(by: rx.disposeBag)
 
-extension ViewController{
-    private func searchForGithub(repositoryName: String) -> Observable<[ListModel]> {
-        return Observable.create {
-            (observer: AnyObserver<[ListModel]>) -> Disposable in
-                netToolProvider.rx.request(
-                .GetStocks(code:"""
-                    00365,01727,02318,00700,03968,02319,NQ,KODK,VIPS,SH603868,SH601933,
-                    SH603711,RYB,XNET,SZ000001,SZ000725,JT,JNJ,ATVI,TTWO,SZ002310,SOGO,
-                    SZ000538,SZ000799,SZ002230,SZ002271,OC833209,AMD,SZ002236,SZ002508,
-                    SZ000423,MOMO,SH600887,BIDU,TCEHY,SZ000333,SH600036,NTES,TWTR,SZ000651,
-                    FB,WMT,AMZN,SZ002415,SZ000895,SINA,SH601318,TSLA,AAPL,DIS
-                    """))
-                .mapJSON()
-                .subscribe(
-                    onSuccess:{json in
-                        let info = self.parseGithubResponse(response: json as AnyObject)
-                        observer.on(.next(info))
-                        observer.on(.completed)
-                    },
-                    onError:{error in
-                        observer.on(.error(error))
-                        print(error)
-                }).disposed(by: self.bag)
-            return  Disposables.create()
-        }
-    }
-    
-    private func parseGithubResponse(response: AnyObject) -> [ListModel] {
-        var ret: [ListModel] = []
-        let a = response as! [String:AnyObject]
-        for (_, subJson ) in a {
-            let s = subJson as! [String:String]
-            ret.append(ListModel(
-                name:s["name"]!,
-                current:s["current"]!
-            ))
-        }
-        return ret
+        ListViewModel().getFromApi(repositoryName: "").subscribe(
+            onNext:{ rs in Observable<[ListModel]>
+                .just(rs)
+                .bind(to: self.resultTableView.rx.items(cellIdentifier: "ListTableViewCell", cellType: ListTableViewCell.self)) {(_, model:ListModel, cell:ListTableViewCell) in
+                        cell.nameLabel.text = model.name
+                        cell.codeLabel.text = model.code
+                    cell.currentLabel.text = String(describing: model.current)
+                        cell.percentageLabel.text = model.percentage + "%"
+                        cell.changeLabel.text = model.change
+                    cell.afterHoursLabel.text = "盘后:" + String(describing: model.afterHours)
+                        cell.afterHoursPctLabel.text = model.afterHoursPct + "%"
+                        cell.afterHoursChgLabel.text = model.afterHoursChg
+                    cell.openLabel.text = "开:" + String(describing: model.open)
+                        cell.highLabel.text = "高:" + model.high
+                        cell.lowLabel.text = "低:" + model.low
+                    //当前价格
+                    if ( Double(model.current)! > Double(model.open)!){
+                            cell.currentLabel.textColor = UIColor.red
+                            cell.percentageLabel.textColor = UIColor.red
+                            cell.changeLabel.textColor = UIColor.red
+                        }else{
+                            cell.currentLabel.textColor = UIColor.green
+                            cell.percentageLabel.textColor = UIColor.green
+                            cell.changeLabel.textColor = UIColor.green
+                    }
+                    //盘后价格
+                    if ( Double(model.afterHours)! > Double(model.close)!){
+                        cell.afterHoursLabel.textColor = UIColor.red
+                        cell.afterHoursPctLabel.textColor = UIColor.red
+                        cell.afterHoursChgLabel.textColor = UIColor.red
+                    }else{
+                        cell.afterHoursLabel.textColor = UIColor.green
+                        cell.afterHoursPctLabel.textColor = UIColor.green
+                        cell.afterHoursChgLabel.textColor = UIColor.green
+                    }
+                    
+                    if ( Double(model.high)! > Double(model.open)!){
+                        cell.highLabel.textColor = UIColor.red
+                    }else{
+                        cell.highLabel.textColor = UIColor.green
+                    }
+                    
+                    if ( Double(model.low)! > Double(model.open)!){
+                        cell.lowLabel.textColor = UIColor.red
+                    }else{
+                        cell.lowLabel.textColor = UIColor.green
+                    }
+                }.disposed(by: self.rx.disposeBag)
+            }
+        ).disposed(by: rx.disposeBag)
     }
 }

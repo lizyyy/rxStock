@@ -9,10 +9,11 @@
 import Foundation
 import RxSwift
 import Moya
-import Alamofire
+
 
 enum StockApi{
     case GetStocks(code:String)
+    case SearchStocks(code:String)
 }
 
 //指一些符合TargetType protocol的enum.然,请求都只根据这个Target而来.
@@ -27,13 +28,16 @@ extension StockApi:TargetType{
         switch self {
         case .GetStocks:
             return "/v4/stock/quote.json"
+        
+        case .SearchStocks:
+            return "/stock/search.json"
         }
     }
     
     var method: Moya.Method {
         switch self {
-            case .GetStocks:
-            return .get
+            case .GetStocks: return .get
+            case .SearchStocks: return .get
         }
     }
     
@@ -42,15 +46,21 @@ extension StockApi:TargetType{
         switch self {
         case .GetStocks:
             return "Create post successfully".data(using: String.Encoding.utf8)!
+        case .SearchStocks:
+            return "Create post successfully".data(using: String.Encoding.utf8)!
         }
     }
-    
+
     // 将要被执行的任务(请求：request 下载：upload 上传：download
     var task: Task {
         switch self {
         case let .GetStocks(code):
             return .requestParameters(parameters: ["code":code], encoding: URLEncoding.queryString)
-        } 
+        case let .SearchStocks(code): 
+            return .requestParameters(parameters: ["code":code ,"size":50], encoding: URLEncoding.queryString)
+
+        }
+
     }
     
     // 参数编码方式(这里使用URL的默认方式)
@@ -64,14 +74,15 @@ extension StockApi:TargetType{
     }
     
     var headers: [String : String]? {
-        return ["referer": "https://xueqiu.com/S/BABA","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7","cookie":"xq_a_token=93ef7d84fd99d7b5f81ea4e1442c7252dff29d20;"]
+        return ["referer": "https://xueqiu.com/S/BABA","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) AppleWebKit/604.4.7 (KHTML, like Gecko) Version/11.0.2 Safari/604.4.7","cookie":"xq_a_token=5c915d14d91dc74b5f2e4c3b4753137ae66c1926;"]
     }
-    
+  
 //    var parameters: [String : Any]? { //请求参数
 //        switch self {
 //        case .GetStocks(let params):
-//            return params
-// 
+//            return [:]
+//        case .SearchStocks(let code):
+//            return ["code":"ap"]
 //        }
 //    }
 }
