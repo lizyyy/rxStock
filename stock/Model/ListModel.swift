@@ -18,6 +18,7 @@ class ListModel:Mappable {
     var open = ""
     var high = ""
     var low = ""
+    var symbol = ""
     
     var close = ""
     
@@ -49,6 +50,7 @@ class ListModel:Mappable {
         high            <- map["high"]
         low             <- map["low"]
         close           <- map["close"]
+        symbol          <- map["symbol"]
     }
 }
 

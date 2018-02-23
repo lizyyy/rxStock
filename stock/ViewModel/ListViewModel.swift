@@ -73,8 +73,38 @@ class ListViewModel {
             }
         return info;
     }
-}
 
+
+
+    func getOne(repositoryName: String) -> Observable<ListModel> {
+        return Observable.create { observer in
+            netToolProvider.rx.request(.GetStocks(code:repositoryName))
+                .mapJSON() //Moya RxSwift的扩展方法，可以把返回的数据解析成 JSON 格式
+                .subscribe( //订阅返回的结果
+                    onSuccess:{json in
+                        let info = self.parseOneResponse(response: json as AnyObject) // 把返回解析成一个listmodel对象
+                        observer.on(.next(info)) //发送next 内容是listmodel
+                        observer.on(.completed)  //发送成功
+                },
+                    onError:{error in
+                        observer.on(.error(error)) //发送错误
+                }).disposed(by: self.bag)//自动内存处理机制
+            
+            return  Disposables.create()
+        }
+    }
+    
+    private func parseOneResponse(response: AnyObject) -> ListModel {
+        var ret:ListModel! 
+        for (_, subJson ) in response as! [String:[String:AnyObject]] {
+            ret = ListModel(JSON: subJson)!
+        }
+        return ret
+    }
+    
+
+
+}
 
 /*
  00365,01727,02318,00700,03968,02319,NQ,KODK,VIPS,SH603868,SH601933,

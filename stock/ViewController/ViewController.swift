@@ -37,57 +37,67 @@ class ViewController: UIViewController {
             }
         ).disposed(by: rx.disposeBag)
         
-        Observable<Int>.interval(2, scheduler: MainScheduler.instance).subscribe { (event) in
-            self.resultTableView.reloadData() //两秒刷新一次
-        }.disposed(by: rx.disposeBag)
-
         ListViewModel().getFromApi(repositoryName: "").subscribe(
             onNext:{ rs in Observable<[ListModel]>
                 .just(rs)
                 .bind(to: self.resultTableView.rx.items(cellIdentifier: "ListTableViewCell", cellType: ListTableViewCell.self)) {(_, model:ListModel, cell:ListTableViewCell) in
-                        cell.nameLabel.text = model.name
-                        cell.codeLabel.text = model.code
-                    cell.currentLabel.text = String(describing: model.current)
-                        cell.percentageLabel.text = model.percentage + "%"
-                        cell.changeLabel.text = model.change
-                    cell.afterHoursLabel.text = "盘后:" + String(describing: model.afterHours)
-                        cell.afterHoursPctLabel.text = model.afterHoursPct + "%"
-                        cell.afterHoursChgLabel.text = model.afterHoursChg
-                    cell.openLabel.text = "开:" + String(describing: model.open)
-                        cell.highLabel.text = "高:" + model.high
-                        cell.lowLabel.text = "低:" + model.low
-                    //当前价格
-                    if ( Double(model.current)! > Double(model.open)!){
-                            cell.currentLabel.textColor = UIColor.red
-                            cell.percentageLabel.textColor = UIColor.red
-                            cell.changeLabel.textColor = UIColor.red
-                        }else{
-                            cell.currentLabel.textColor = UIColor.green
-                            cell.percentageLabel.textColor = UIColor.green
-                            cell.changeLabel.textColor = UIColor.green
-                    }
-                    //盘后价格
-                    if ( Double(model.afterHours)! > Double(model.close)!){
-                        cell.afterHoursLabel.textColor = UIColor.red
-                        cell.afterHoursPctLabel.textColor = UIColor.red
-                        cell.afterHoursChgLabel.textColor = UIColor.red
-                    }else{
-                        cell.afterHoursLabel.textColor = UIColor.green
-                        cell.afterHoursPctLabel.textColor = UIColor.green
-                        cell.afterHoursChgLabel.textColor = UIColor.green
-                    }
                     
-                    if ( Double(model.high)! > Double(model.open)!){
-                        cell.highLabel.textColor = UIColor.red
-                    }else{
-                        cell.highLabel.textColor = UIColor.green
-                    }
-                    
-                    if ( Double(model.low)! > Double(model.open)!){
-                        cell.lowLabel.textColor = UIColor.red
-                    }else{
-                        cell.lowLabel.textColor = UIColor.green
-                    }
+                    Observable<Int>.interval(2, scheduler: MainScheduler.instance).subscribe { (event) in
+                        ListViewModel().getOne(repositoryName: model.symbol)
+                        .subscribe(
+                            onNext:{ rs in Observable<ListModel>
+                                .just(rs)
+                                .subscribe{
+                                    cell.currentLabel.text = String(describing: rs.current)
+                                    cell.nameLabel.text = rs.name
+                                    cell.codeLabel.text = rs.code
+                                    cell.currentLabel.text = String(describing: rs.current)
+                                    cell.percentageLabel.text = rs.percentage + "%"
+                                    cell.changeLabel.text = rs.change
+                                    cell.afterHoursLabel.text = "盘后:" + String(describing: rs.afterHours)
+                                    cell.afterHoursPctLabel.text = rs.afterHoursPct + "%"
+                                    cell.afterHoursChgLabel.text = rs.afterHoursChg
+                                    cell.openLabel.text = "开:" + String(describing: rs.open)
+                                    cell.highLabel.text = "高:" + rs.high
+                                    cell.lowLabel.text = "低:" + rs.low
+                                    
+                                    //当前价格
+                                    if ( Double(rs.current)! > Double(rs.open)!){
+                                        cell.currentLabel.textColor = UIColor.red
+                                        cell.percentageLabel.textColor = UIColor.red
+                                        cell.changeLabel.textColor = UIColor.red
+                                    }else{
+                                        cell.currentLabel.textColor = UIColor.green
+                                        cell.percentageLabel.textColor = UIColor.green
+                                        cell.changeLabel.textColor = UIColor.green
+                                    }
+                                    //盘后价格
+                                    if ( Double(rs.afterHours)! > Double(rs.close)!){
+                                        cell.afterHoursLabel.textColor = UIColor.red
+                                        cell.afterHoursPctLabel.textColor = UIColor.red
+                                        cell.afterHoursChgLabel.textColor = UIColor.red
+                                    }else{
+                                        cell.afterHoursLabel.textColor = UIColor.green
+                                        cell.afterHoursPctLabel.textColor = UIColor.green
+                                        cell.afterHoursChgLabel.textColor = UIColor.green
+                                    }
+                                    
+                                    if ( Double(rs.high)! > Double(rs.open)!){
+                                        cell.highLabel.textColor = UIColor.red
+                                    }else{
+                                        cell.highLabel.textColor = UIColor.green
+                                    }
+                                    
+                                    if ( Double(rs.low)! > Double(rs.open)!){
+                                        cell.lowLabel.textColor = UIColor.red
+                                    }else{
+                                        cell.lowLabel.textColor = UIColor.green
+                                    }
+                                    
+                                }.disposed(by: self.rx.disposeBag)
+                            }
+                        ).disposed(by: self.rx.disposeBag)
+                    }.disposed(by: self.rx.disposeBag)
                 }.disposed(by: self.rx.disposeBag)
             }
         ).disposed(by: rx.disposeBag)
