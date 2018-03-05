@@ -20,8 +20,10 @@ class ListViewModel {
         }
     */
     func getFromApi(repositoryName: String) -> Observable<[ListModel]> {
+        let code = UserDefaults.standard.array(forKey: "stockSelected")  as! [String]
+        let codeStr = code.joined(separator: ",") 
         return Observable.create { observer in
-                netToolProvider.rx.request(.GetStocks(code:"FB,WB,WMT,AMZN,SZ002415,NVDA,SINA,TSLA,AAPL,DIS"))
+                netToolProvider.rx.request(.GetStocks(code:codeStr))
                 .mapJSON() //Moya RxSwift的扩展方法，可以把返回的数据解析成 JSON 格式
                 .subscribe( //订阅返回的结果
                     onSuccess:{json in

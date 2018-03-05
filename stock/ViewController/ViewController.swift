@@ -15,7 +15,7 @@ import Then
 import MJRefresh
 import NSObject_Rx
 
-class ViewController: UIViewController {
+class ViewController: UIViewController { 
     var resultTableView : UITableView!
     var addBtn = UIButton(frame: CGRect(x: ScreenW-100 , y: 10, width: 80, height: 80))
     override func viewDidLoad() {
@@ -30,7 +30,6 @@ class ViewController: UIViewController {
         //添加按钮
         addBtn.setTitle("+", for: .normal)
         view.addSubview(addBtn)
-        
         addBtn.rx.tap.asObservable().subscribe(
             onNext: {
                 self.present(AddViewController(), animated: true, completion: nil)

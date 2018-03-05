@@ -16,12 +16,17 @@ class ListTableViewCell: UITableViewCell {
     var openLabel: UILabel! //开盘价
     var highLabel: UILabel! //最高价
     var lowLabel: UILabel!  //最低价
+    
 
+    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
     override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+        
+        //defaults.set([], forKey: "stockSelected")
+     
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         self.backgroundColor = UIColor.black
         let defaultHeight:CGFloat = 18
